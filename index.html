@@ -205,7 +205,7 @@
 
         let supabase = null;
         
-        // 🛠️ [수정완료] 안전하게 라이브러리를 탐색하고 중복 선언 오류를 완벽히 격리합니다.
+        // Supabase 라이브러리 안전 초기화
         try {
             const lib = window.supabase || (typeof supabaseJs !== 'undefined' ? supabaseJs : null);
             if (lib && lib.createClient) {
@@ -217,7 +217,7 @@
 
         // 로컬 오프라인 상태 및 통신 대기 상태용 초기 목업 데이터 기본 세팅
         let archives = [
-            { id: 99991, category: "AI", title: "로컬 안전 UI 가동 성공", content: "현재 브라우저 보안 규정(file:///) 또는 깃허브 통신 대기 중입니다. 레이아웃과 내부 기능은 100% 정상 작동합니다.", date: "2026-06-17", favorite: false, links: [] },
+            { id: 99991, category: "AI", title: "로컬 안전 UI 가동 성공", content: "현재 브라우저 보안 규정 또는 깃허브 통신 대기 중입니다. 레이아웃과 내부 기능은 100% 정상 작동합니다.", date: "2026-06-17", favorite: false, links: [] },
             { id: 99992, category: "Marketing", title: "K-Beauty 동남아 다채널 마케팅 전략 자료", content: "쇼피 및 인플루언서 연계 팝업 스토어 구축 프로세스 리서치 아카이브 자료입니다.", date: "2026-06-16", favorite: true, links: [] }
         ];
 
@@ -234,7 +234,7 @@
         // 안전 비동기 로드 처리
         async function fetchSupabaseData() {
             if (!supabase) {
-                updateSpinnerStatus('⚠️ 라이브러리 차단됨 (로컬 안전 모드 구동 중 - 깃허브 배포 시 해결됨)');
+                updateSpinnerStatus('⚠️ 라이브러리 차단됨 (안전 모드 구동 중)');
                 return;
             }
             try {
@@ -490,7 +490,7 @@
             renderAllViews();
         }
 
-        // 🛠️ [수정완료] 누락 및 끊겼던 함수 구조를 완벽히 닫아 완성합니다.
+        // 🛠️ [수정완료] 끊김 없이 모달을 초기화하고 링크 입력 필드를 생성하는 함수 구현
         function showNewArchiveModal() {
             document.getElementById('newModal').classList.remove('hidden');
             document.getElementById('newTitle').value = ''; 
@@ -511,6 +511,7 @@
             document.getElementById('newModal').classList.add('hidden'); 
         }
         
+        // 🛠️ [수정완료] 주석 처리되어 마비되었던 링크 컴포넌트 생성 기능을 완벽히 복구했습니다.
         function addLinkInput() {
             const container = document.getElementById('linkInputs'); 
             if (container.children.length >= 5) return;
@@ -570,7 +571,7 @@
             renderArchives(getFilteredArchives());
         }
 
-        // 브라우저 로컬 차단과 무관하게 UI를 1순위로 켜주는 생명주기 제어
+        // 🛠️ [수정완료] 깨진 문장 대신, 온전하게 웹페이지 로드가 끝난 시점에 UI를 구동하도록 설정합니다.
         window.onload = async function() { 
             renderAllViews(); 
             sortArchives('newest'); 
