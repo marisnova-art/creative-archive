@@ -720,10 +720,10 @@
     const SUPABASE_URL      = 'https://oivthhdphiatrswsjxej.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnRoaGRwaGlhdHJzd3NqeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjAyNDQsImV4cCI6MjA5NzE5NjI0NH0.HpMEfEjASdItN0iY4GxLzRDBE56HAM08I44Cw55TtBo';
 
-    let supabase = null;
+    let sbClient = null;
     try {
         const lib = window.supabase || (typeof supabaseJs !== 'undefined' ? supabaseJs : null);
-        if (lib && lib.createClient) supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        if (lib && lib.createClient) sbClient = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch(e) { console.error('Supabase 초기화 실패:', e); }
 
     let archives = [
@@ -738,9 +738,9 @@
 
     /* Supabase */
     async function fetchSupabaseData() {
-        if (!supabase) { updateSpinnerStatus('⚠️ 라이브러리 차단됨 (안전 모드)'); return; }
+        if (!sbClient) { updateSpinnerStatus('⚠️ 라이브러리 차단됨 (안전 모드)'); return; }
         try {
-            const { data, error } = await supabase.from('archives').select('*');
+            const { data, error } = await sbClient.from('archives').select('*');
             if (error) throw error;
             if (data && data.length > 0) {
                 archives = data.map(item => ({ ...item, links: Array.isArray(item.links) ? item.links : (item.links ? [item.links] : []), favorite: !!item.favorite }));
@@ -933,8 +933,8 @@
         if (!archive) return;
         archive.favorite = !archive.favorite;
         renderArchives(getFilteredArchives()); renderCategories();
-        if (supabase) {
-            const { error } = await supabase.from('archives').update({ favorite: archive.favorite }).eq('id', id);
+        if (sbClient) {
+            const { error } = await sbClient.from('archives').update({ favorite: archive.favorite }).eq('id', id);
             if (error) console.error('즐겨찾기 업데이트 오류:', error.message);
         }
     }
@@ -957,8 +957,8 @@
     async function deleteArchive() {
         if (!confirm('이 아카이브를 삭제하시겠습니까?')) return;
         const id = parseInt(document.getElementById('detailModal').dataset.currentId);
-        if (supabase) {
-            const { error } = await supabase.from('archives').delete().eq('id', id);
+        if (sbClient) {
+            const { error } = await sbClient.from('archives').delete().eq('id', id);
             if (error) console.warn('서버 삭제 실패:', error.message);
         }
         archives = archives.filter(a => a.id !== id);
@@ -1003,8 +1003,8 @@
         archives.unshift({ id: localId, category, title, content, date: currentDate, links, favorite: false });
         closeNewModal(); currentPage = 1; renderAllViews();
 
-        if (supabase) {
-            const { data, error } = await supabase.from('archives')
+        if (sbClient) {
+            const { data, error } = await sbClient.from('archives')
                 .insert([{ category, title, content, date: currentDate, links, favorite: false }]).select();
             if (!error && data?.length) {
                 const idx = archives.findIndex(a => a.id === localId);
