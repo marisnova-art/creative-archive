@@ -3,581 +3,1030 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creative Archive - 아이디어 아카이브 (Supabase Ver.)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Creative Archive — 아이디어 아카이브</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&display=swap');
-        
+        /* ── Reset & 컬러 토큰 ───────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        button { cursor: pointer; background: none; border: none; font-family: inherit; }
+        a { text-decoration: none; }
+
+        :root {
+            --primary:    #191D32;
+            --primary-d:  #111424;
+            --bg:         #0D0F1C;
+            --accent:     #D4FE08;
+            --accent-d:   #B8DD00;
+            --white:      #FFFFFF;
+            --white-60:   rgba(255,255,255,0.6);
+            --white-10:   rgba(255,255,255,0.08);
+            --white-05:   rgba(255,255,255,0.04);
+            --text-sub:   #6B7494;
+            --text-muted: #3D4264;
+            --red-soft:   rgba(239,68,68,0.1);
+            --red-text:   #f87171;
+            --red-border: rgba(239,68,68,0.15);
+        }
+
+        /* ── Base ────────────────────────────────────────────────── */
+        html, body { height: 100%; overflow: hidden; }
         body {
-            font-family: 'Noto Sans KR', system-ui, sans-serif;
-            background-color: #0F111E;
+            font-family: 'Noto Sans KR', 'Space Grotesk', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--white);
+            -webkit-font-smoothing: antialiased;
         }
-        .sidebar-gradient {
-            background: linear-gradient(180deg, #191D32 0%, #111424 100%);
+
+        /* ── 루트 레이아웃 ───────────────────────────────────────── */
+        #root {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            background: radial-gradient(ellipse 80% 50% at 70% 0%, rgba(42,47,110,0.4) 0%, var(--bg) 65%);
         }
-        .main-gradient {
-            background: radial-gradient(circle at 80% 20%, #1E233D 0%, #0F111E 60%);
+
+        /* ── 모바일 탑바 ─────────────────────────────────────────── */
+        #mobileTopbar {
+            display: none;
+            height: 56px;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: var(--primary);
+            border-bottom: 1px solid var(--white-10);
+            flex-shrink: 0;
+            z-index: 40;
         }
-        .card-custom {
-            background-color: rgba(25, 29, 50, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(212, 254, 8, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        #mobileTopbar .logo-row { display: flex; align-items: center; gap: 10px; }
+        #hamburgerBtn { color: var(--text-sub); font-size: 17px; padding: 8px; transition: color 0.15s; }
+        #hamburgerBtn:hover { color: var(--accent); }
+
+        /* ── 메인 행 (사이드바 + 콘텐츠) ────────────────────────── */
+        #mainRow {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            overflow: hidden;
         }
-        .card-custom:hover {
-            transform: translateY(-4px);
-            border-color: #D4FE08;
-            background-color: rgba(25, 29, 50, 0.9);
-            box-shadow: 0 15px 30px -5px rgba(15, 17, 30, 0.9);
+
+        /* ── 사이드바 ────────────────────────────────────────────── */
+        #sidebarPanel {
+            display: flex;
+            flex-direction: column;
+            width: 256px;
+            flex-shrink: 0;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-d) 100%);
+            border-right: 1px solid var(--white-10);
+            overflow: hidden;
         }
-        .modal-pop {
-            animation: modalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+
+        /* 로고 */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--white-10);
+            flex-shrink: 0;
         }
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.96) translateY(15px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+        .logo-sub { font-size: 10px; color: var(--text-sub); margin-top: 2px; letter-spacing: 0.08em; }
+
+        /* 로고 마크 */
+        .logo-mark {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700; font-size: 18px;
+            color: #000; flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(212,254,8,0.3);
         }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0F111E; }
-        ::-webkit-scrollbar-thumb { background: #191D32; border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: #D4FE08; }
+        .logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px; font-weight: 700;
+            letter-spacing: 0.04em; color: var(--white);
+            line-height: 1.2;
+        }
+        .logo-text .accent { color: var(--accent); }
+
+        /* 검색 */
+        .search-wrap {
+            padding: 16px 16px 10px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .search-bar {
+            width: 100%;
+            background: rgba(0,0,0,0.35);
+            border: 1px solid var(--white-10);
+            border-radius: 14px;
+            padding: 10px 36px 10px 38px;
+            color: var(--white);
+            font-size: 13px;
+            transition: border-color 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+        .search-bar:focus { border-color: var(--accent); }
+        .search-bar::placeholder { color: var(--text-sub); }
+        .search-icon {
+            position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+            color: var(--text-sub); font-size: 11px; pointer-events: none;
+        }
+        .search-clear {
+            position: absolute; right: 26px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 11px; padding: 4px;
+            transition: color 0.15s;
+        }
+        .search-clear:hover { color: var(--white); }
+
+        /* 카테고리 섹션 */
+        .cat-section {
+            flex: 1; overflow: hidden;
+            display: flex; flex-direction: column;
+            padding: 0 12px;
+        }
+        .cat-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 4px 8px 8px;
+        }
+        .section-label {
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 0.1em; text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .total-badge {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px; font-weight: 700;
+            color: var(--accent);
+        }
+        #categoryList {
+            overflow-y: auto;
+            flex: 1;
+            padding-bottom: 8px;
+        }
+
+        /* 카테고리 아이템 */
+        .cat-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 14px; border-radius: 10px;
+            cursor: pointer; font-size: 13px;
+            color: var(--text-sub);
+            transition: background 0.15s, color 0.15s;
+            user-select: none;
+        }
+        .cat-item:hover { background: var(--white-05); color: var(--white); }
+        .cat-item.active { background: rgba(212,254,8,0.08); color: var(--accent); font-weight: 600; }
+        .cat-item .cat-icon { width: 18px; text-align: center; font-size: 12px; flex-shrink: 0; }
+        .cat-item .cat-name { flex: 1; }
+        .cat-badge {
+            font-size: 10px; font-weight: 600;
+            background: rgba(0,0,0,0.4);
+            color: var(--text-sub);
+            padding: 2px 8px; border-radius: 6px;
+        }
+        .cat-item.active .cat-badge { background: rgba(212,254,8,0.15); color: var(--accent); }
+
+        /* 즐겨찾기 */
+        .fav-section {
+            padding: 12px 16px 20px;
+            border-top: 1px solid var(--white-10);
+            flex-shrink: 0;
+        }
+        .fav-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 11px 14px; border-radius: 12px;
+            cursor: pointer; transition: background 0.15s;
+            user-select: none;
+        }
+        .fav-nav:hover { background: var(--white-05); }
+        .fav-nav.active { background: rgba(212,254,8,0.08); }
+        .fav-nav-left { display: flex; align-items: center; gap: 12px; }
+        .fav-nav-left i { color: var(--accent); font-size: 13px; }
+        .fav-nav-label { font-size: 13px; font-weight: 500; color: #CBD5E1; }
+        .fav-pill {
+            background: var(--accent); color: #000;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 9px; border-radius: 99px;
+        }
+
+        /* ── 메인 콘텐츠 영역 ────────────────────────────────────── */
+        #contentArea {
+            flex: 1;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        /* 탑바 */
+        .topbar {
+            height: 56px;
+            display: flex; align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            background: rgba(25,29,50,0.5);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--white-10);
+            flex-shrink: 0;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .filter-chip {
+            font-size: 12px; font-weight: 600;
+            background: var(--primary);
+            border: 1px solid var(--white-10);
+            padding: 6px 14px; border-radius: 8px;
+            color: var(--white); letter-spacing: 0.02em;
+        }
+        .sort-group { display: flex; align-items: center; gap: 10px; }
+        .divider-v { width: 1px; height: 12px; background: var(--white-10); }
+        .sort-btn { font-size: 12px; font-weight: 500; color: var(--text-sub); transition: color 0.15s; }
+        .sort-btn.active { color: var(--accent); font-weight: 700; }
+        .sort-btn:hover:not(.active) { color: var(--white); }
+        .sort-sep { color: var(--white-10); font-size: 11px; }
+
+        .add-btn {
+            display: flex; align-items: center; gap: 6px;
+            background: var(--accent); color: #000;
+            font-size: 12px; font-weight: 700;
+            padding: 9px 18px; border-radius: 10px;
+            letter-spacing: 0.02em;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 4px 20px rgba(212,254,8,0.2);
+        }
+        .add-btn:hover { background: var(--accent-d); box-shadow: 0 6px 28px rgba(212,254,8,0.35); transform: translateY(-1px); }
+
+        /* 상태 바 */
+        .status-bar {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 24px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--white-05);
+            font-size: 11px; color: var(--text-sub);
+            flex-shrink: 0;
+        }
+
+        /* 아카이브 리스트 */
+        #archiveList {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 28px;
+        }
+
+        /* 페이지네이션 */
+        #pagination {
+            height: 56px;
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px;
+            background: rgba(13,15,28,0.85);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--white-10);
+            flex-shrink: 0;
+        }
+        .page-btn {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            color: var(--text-sub);
+            background: var(--white-05);
+        }
+        .page-btn:hover { background: var(--white-10); color: var(--white); }
+        .page-btn.active { background: var(--accent); color: #000; font-weight: 700; }
+
+        /* ── 카드 ─────────────────────────────────────────────────── */
+        .archive-card {
+            background: rgba(25,29,50,0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--white-10);
+            border-radius: 18px;
+            padding: 20px 24px;
+            margin-bottom: 14px;
+            transition: transform 0.25s cubic-bezier(.4,0,.2,1),
+                        border-color 0.25s, background 0.25s, box-shadow 0.25s;
+        }
+        .archive-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(212,254,8,0.35);
+            background: rgba(25,29,50,0.85);
+            box-shadow: 0 16px 40px -8px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,254,8,0.12);
+        }
+        .card-top {
+            display: flex; align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .card-cat-badge {
+            display: inline-block;
+            font-size: 10px; font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            background: rgba(212,254,8,0.1);
+            color: var(--accent);
+            padding: 3px 10px; border-radius: 6px;
+            border: 1px solid rgba(212,254,8,0.15);
+        }
+        .fav-star { font-size: 16px; transition: transform 0.15s, color 0.15s; padding: 2px; }
+        .fav-star:hover { transform: scale(1.25); }
+        .fav-star.on { color: var(--accent); }
+        .fav-star.off { color: var(--text-muted); }
+
+        .card-title {
+            font-size: 15px; font-weight: 700;
+            color: var(--white); line-height: 1.45;
+            margin-bottom: 10px; cursor: pointer;
+            display: -webkit-box; -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical; overflow: hidden;
+            transition: color 0.15s;
+        }
+        .archive-card:hover .card-title { color: var(--accent); }
+
+        .card-bottom {
+            display: flex; align-items: center;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .card-date {
+            font-size: 11px; font-family: 'Space Grotesk', monospace;
+            color: var(--text-muted); flex-shrink: 0;
+        }
+        .card-preview {
+            flex: 1; min-width: 0;
+            font-size: 12px; color: var(--text-sub);
+            background: rgba(0,0,0,0.25);
+            padding: 6px 12px; border-radius: 8px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center; padding: 80px 24px;
+            border: 1px dashed var(--white-10);
+            border-radius: 20px;
+            color: var(--text-sub); font-size: 13px;
+        }
+        .empty-state i { font-size: 28px; margin-bottom: 12px; display: block; color: var(--text-muted); }
+
+        /* ── 모달 공통 ───────────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(16px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50; padding: 20px;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-box {
+            background: var(--primary);
+            border: 1px solid var(--white-10);
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            max-height: 90vh;
+            width: 100%;
+            animation: popIn 0.32s cubic-bezier(0.34,1.56,0.64,1) forwards;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.94) translateY(16px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header { padding: 28px 32px 20px; border-bottom: 1px solid var(--white-10); flex-shrink: 0; }
+        .modal-body   { flex: 1; overflow-y: auto; padding: 24px 32px; }
+        .modal-footer {
+            padding: 20px 32px; border-top: 1px solid var(--white-10);
+            background: rgba(0,0,0,0.2);
+            display: flex; gap: 12px; flex-shrink: 0;
+        }
+        .modal-head-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .modal-head-left { display: flex; flex-direction: column; gap: 8px; }
+        .modal-head-right { display: flex; align-items: center; gap: 12px; }
+        .modal-date { font-size: 11px; color: var(--text-sub); font-family: 'Space Grotesk', monospace; letter-spacing: 0.04em; }
+        .modal-title { font-size: 19px; font-weight: 700; line-height: 1.4; word-break: break-all; }
+
+        .accent-line {
+            height: 2px; width: 48px;
+            background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+            border-radius: 99px; margin-bottom: 10px;
+        }
+        .accent-line.sm { width: 32px; }
+
+        .detail-cat-badge {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            background: rgba(212,254,8,0.12); color: var(--accent);
+            padding: 4px 12px; border-radius: 99px;
+            border: 1px solid rgba(212,254,8,0.2);
+        }
+        .fav-modal-btn { font-size: 20px; transition: transform 0.2s, color 0.15s; padding: 4px; color: var(--text-muted); }
+        .fav-modal-btn:hover { transform: scale(1.2); color: var(--accent); }
+        .close-btn { font-size: 24px; color: var(--text-sub); line-height: 1; transition: color 0.15s; }
+        .close-btn:hover { color: var(--white); }
+
+        .content-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--white-05);
+            border-radius: 14px; padding: 20px;
+            font-size: 14px; line-height: 1.75;
+            color: rgba(255,255,255,0.85);
+            white-space: pre-wrap; word-break: break-all;
+            margin-bottom: 20px;
+        }
+        .ref-section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; margin-top: 4px; }
+        .ref-link {
+            display: block; color: var(--accent);
+            font-size: 12px; font-family: 'Space Grotesk', monospace;
+            word-break: break-all; padding: 5px 0;
+            border-bottom: 1px solid var(--white-05);
+            transition: opacity 0.15s;
+        }
+        .ref-link:last-child { border: none; }
+        .ref-link:hover { opacity: 0.7; }
+
+        /* 모달 인풋 */
+        .m-label {
+            display: block; font-size: 11px; font-weight: 600;
+            color: var(--text-sub); text-transform: uppercase;
+            letter-spacing: 0.07em; margin-bottom: 8px;
+        }
+        .m-input, .m-select, .m-textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--white-10);
+            border-radius: 12px;
+            padding: 11px 16px;
+            font-size: 13px; color: var(--white);
+            outline: none; transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        .m-input:focus, .m-select:focus, .m-textarea:focus { border-color: var(--accent); }
+        .m-input::placeholder, .m-textarea::placeholder { color: var(--text-muted); }
+        .m-select option { background: var(--primary); color: var(--white); }
+        .m-textarea { resize: none; line-height: 1.6; }
+        .form-group { margin-bottom: 20px; }
+        .new-modal-header { display: flex; justify-content: space-between; align-items: center; }
+
+        /* 링크 행 */
+        .link-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .link-row input {
+            flex: 1;
+            background: rgba(0,0,0,0.25); border: 1px solid var(--white-10);
+            border-radius: 10px; padding: 9px 14px;
+            font-size: 12px; color: var(--white); outline: none;
+            transition: border-color 0.2s; font-family: inherit;
+        }
+        .link-row input:focus { border-color: var(--accent); }
+        .link-rm { color: var(--text-muted); font-size: 18px; padding: 4px 8px; transition: color 0.15s; }
+        .link-rm:hover { color: var(--red-text); }
+        .link-add-btn {
+            color: var(--accent); font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
+            margin-top: 4px; padding: 4px; transition: opacity 0.15s;
+        }
+        .link-add-btn:hover { opacity: 0.7; }
+
+        /* 버튼 */
+        .btn-primary {
+            flex: 1; padding: 13px;
+            background: var(--accent); color: #000;
+            font-size: 13px; font-weight: 700;
+            border-radius: 12px; transition: background 0.15s;
+        }
+        .btn-primary:hover { background: var(--accent-d); }
+        .btn-ghost {
+            flex: 1; padding: 13px;
+            background: var(--white-05); color: var(--white-60);
+            font-size: 13px; font-weight: 500;
+            border-radius: 12px; border: 1px solid var(--white-10);
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-ghost:hover { background: var(--white-10); color: var(--white); }
+        .btn-danger {
+            flex: 1; padding: 13px;
+            background: var(--red-soft); color: var(--red-text);
+            font-size: 13px; font-weight: 600;
+            border-radius: 12px; border: 1px solid var(--red-border);
+            transition: background 0.15s;
+        }
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+        .btn-copy {
+            flex: 1; padding: 13px;
+            background: var(--white-05); color: var(--white);
+            font-size: 13px; font-weight: 600;
+            border-radius: 12px; border: 1px solid var(--white-10);
+            transition: background 0.15s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-copy:hover { background: var(--white-10); }
+        .btn-copy i { color: var(--accent); }
+
+        /* 스크롤바 */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* ── 반응형 ──────────────────────────────────────────────── */
+        @media (max-width: 1023px) {
+            #mobileTopbar { display: flex; }
+            #sidebarPanel {
+                display: none;
+                position: fixed;
+                top: 56px; left: 0; right: 0; bottom: 0;
+                width: 100%;
+                z-index: 30;
+            }
+            #sidebarPanel.open { display: flex; }
+            #archiveList { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .modal-header { padding: 20px 20px 16px; }
+            .modal-body   { padding: 16px 20px; }
+            .modal-footer { padding: 16px 20px; }
+            .modal-title  { font-size: 16px; }
+            .sort-group   { display: none; }
+        }
     </style>
 </head>
-<body class="text-white overflow-hidden">
+<body>
 
-    <div class="flex flex-col lg:flex-row h-screen w-full overflow-hidden relative main-gradient">
-        
-        <div class="lg:hidden flex h-16 w-full items-center justify-between px-4 bg-[#191D32] border-b border-white/5 z-40 flex-shrink-0">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-[#D4FE08] rounded-xl flex items-center justify-center text-black font-bold text-xl">C</div>
-                <div class="text-sm font-bold tracking-tight text-white">
-                    <span>CREATIVE</span> <span class="text-[#D4FE08]">ARCHIVE</span>
-                </div>
-            </div>
-            <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-[#D4FE08] text-xl p-2">
-                <i id="hamburgerIcon" class="fa-solid fa-bars"></i>
-            </button>
+<div id="root">
+
+    <!-- 모바일 탑바 -->
+    <div id="mobileTopbar">
+        <div class="logo-row">
+            <div class="logo-mark">C</div>
+            <div class="logo-text">CREATIVE <span class="accent">ARCHIVE</span></div>
         </div>
+        <button id="hamburgerBtn" onclick="toggleMobileMenu()">
+            <i id="hamburgerIcon" class="fa-solid fa-bars"></i>
+        </button>
+    </div>
 
-        <aside id="sidebarPanel" class="hidden lg:flex flex-col w-full lg:w-72 sidebar-gradient border-r border-white/5 flex-shrink-0 fixed lg:sticky top-16 lg:top-0 left-0 bottom-0 lg:h-screen z-30 transition-transform duration-300">
-            <div class="p-6 border-b border-white/5 hidden lg:block">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-[#D4FE08] rounded-2xl flex items-center justify-center text-black font-bold text-2xl">C</div>
-                    <div class="text-white">
-                        <span class="text-xl font-bold tracking-tight">CREATIVE</span>
-                        <span class="text-[#D4FE08] text-xl font-bold">ARCHIVE</span>
-                    </div>
-                </div>
-                <p class="text-xs text-slate-400 mt-1">아이디어 아카이브</p>
-            </div>
+    <div id="mainRow">
 
-            <div class="p-4 lg:p-6 pb-2 lg:pb-4">
-                <div class="relative flex items-center w-full">
-                    <input id="searchInput" type="text" placeholder="제목 또는 내용 검색..." class="w-full bg-black/30 border border-white/10 rounded-2xl py-2.5 lg:py-3 px-4 pl-11 pr-10 text-sm focus:outline-none focus:border-[#D4FE08] transition-colors text-white placeholder-slate-500" oninput="filterArchives()">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-400 text-xs lg:text-sm"></i>
-                    <button onclick="clearSearch()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
+        <!-- ── 사이드바 ────────────────────────────────────── -->
+        <aside id="sidebarPanel">
+
+            <div class="logo-area">
+                <div class="logo-mark">C</div>
+                <div>
+                    <div class="logo-text">CREATIVE <span class="accent">ARCHIVE</span></div>
+                    <div class="logo-sub">아이디어 아카이브</div>
                 </div>
             </div>
 
-            <div class="flex flex-col flex-1 overflow-hidden">
-                <div class="px-4 lg:px-6 mb-2 mt-2 lg:mt-0 flex-shrink-0">
-                    <div class="flex items-center justify-between text-xs uppercase tracking-widest text-slate-400 mb-2">
-                        <span>카테고리 메뉴</span>
-                        <span id="totalCount" class="text-[#D4FE08] font-bold">0</span>
-                    </div>
-                </div>
-                <div id="categoryList" class="overflow-y-auto px-3 py-1 flex-1 space-y-1 text-sm"></div>
+            <div class="search-wrap">
+                <input id="searchInput" type="text" placeholder="검색…" class="search-bar" oninput="filterArchives()">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <button class="search-clear" onclick="clearSearch()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <div class="p-4 lg:p-6 border-t border-white/5 bg-black/20 lg:bg-transparent flex-shrink-0">
-                <div onclick="showFavorites()" id="favNavBtn" class="flex items-center justify-between cursor-pointer hover:bg-white/5 p-2.5 lg:p-3 rounded-2xl group transition-colors">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-star text-[#D4FE08]"></i>
-                        <span class="font-medium text-sm lg:text-base text-slate-300 group-hover:text-white">즐겨찾기 보관함</span>
+            <div class="cat-section">
+                <div class="cat-header">
+                    <span class="section-label">카테고리</span>
+                    <span id="totalCount" class="total-badge">0</span>
+                </div>
+                <div id="categoryList"></div>
+            </div>
+
+            <div class="fav-section">
+                <div id="favNavBtn" class="fav-nav" onclick="showFavorites()">
+                    <div class="fav-nav-left">
+                        <i class="fa-solid fa-star"></i>
+                        <span class="fav-nav-label">즐겨찾기</span>
                     </div>
-                    <span id="favCount" class="bg-[#D4FE08] text-black text-xs font-bold px-2.5 py-1 rounded-full">0</span>
+                    <span id="favCount" class="fav-pill">0</span>
                 </div>
             </div>
         </aside>
 
-        <div class="flex-1 flex flex-col overflow-hidden w-full">
-            <div class="h-16 border-b border-white/5 bg-[#191D32]/40 backdrop-blur-md flex items-center px-4 lg:px-8 justify-between flex-shrink-0">
-                <div class="flex items-center gap-3 lg:gap-6">
-                    <span id="currentFilterTitle" class="text-xs lg:text-sm font-bold text-white bg-[#191D32] px-3 py-1.5 rounded-xl">전체보기</span>
-                    <div class="h-4 w-px bg-white/10"></div>
-                    <div class="flex items-center gap-2.5 text-xs lg:text-sm">
-                        <button onclick="sortArchives('newest')" id="sortNewest" class="text-[#D4FE08] font-medium">최신순</button>
-                        <span class="text-white/10">|</span>
-                        <button onclick="sortArchives('oldest')" id="sortOldest" class="text-slate-400 hover:text-white transition-colors">오래된순</button>
+        <!-- ── 메인 콘텐츠 ─────────────────────────────────── -->
+        <div id="contentArea">
+
+            <div class="topbar">
+                <div class="topbar-left">
+                    <span id="currentFilterTitle" class="filter-chip">전체보기</span>
+                    <div class="sort-group">
+                        <div class="divider-v"></div>
+                        <button onclick="sortArchives('newest')" id="sortNewest" class="sort-btn active">최신순</button>
+                        <span class="sort-sep">|</span>
+                        <button onclick="sortArchives('oldest')" id="sortOldest" class="sort-btn">오래된순</button>
                     </div>
                 </div>
-                <button onclick="showNewArchiveModal()" class="flex items-center gap-1.5 bg-[#D4FE08] hover:bg-[#C5E900] transition-colors text-black font-bold px-4 py-2.5 rounded-2xl text-xs lg:text-sm shadow-lg shadow-[#D4FE08]/10">
-                    <i class="fa-solid fa-plus"></i>
+                <button onclick="showNewArchiveModal()" class="add-btn">
+                    <i class="fa-solid fa-plus" style="font-size:11px;"></i>
                     <span>아카이브 등록</span>
                 </button>
             </div>
 
-            <div id="loadingSpinner" class="flex justify-center items-center py-6 text-slate-400 bg-black/10 flex-shrink-0">
-                <i class="fa-solid fa-circle-notch animate-spin text-sm text-[#D4FE08] mr-2"></i> 
-                <span id="spinnerText">Supabase 원격 서버 데이터 연동 중...</span>
+            <div id="loadingSpinner" class="status-bar">
+                <i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent); font-size:11px;"></i>
+                <span id="spinnerText">Supabase 원격 서버 데이터 연동 중…</span>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 lg:p-8" id="archiveList"></div>
-            <div class="h-16 border-t border-white/5 flex items-center justify-center gap-2 bg-[#0F111E]/80 backdrop-blur-md flex-shrink-0" id="pagination"></div>
+            <div id="archiveList"></div>
+
+            <div id="pagination"></div>
         </div>
     </div>
+</div>
 
-    <div id="detailModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md">
-        <div class="modal-pop bg-[#191D32] w-full max-w-3xl rounded-3xl overflow-hidden flex flex-col max-h-[90vh] border border-white/10 shadow-2xl">
-            <div class="p-6 lg:p-8 pb-4 border-b border-white/5 flex-shrink-0">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <span id="modalCategory" class="inline-block px-3 py-0.5 bg-[#D4FE08]/10 text-[#D4FE08] text-xs font-semibold rounded-full"></span>
-                        <p id="modalDate" class="text-slate-400 text-xs lg:text-sm mt-2 font-mono"></p>
-                    </div>
-                    <div class="flex gap-4 items-center">
-                        <button onclick="toggleFavoriteInModal()" id="modalFavBtn" class="text-xl text-slate-400 hover:text-[#D4FE08] transition-all p-1">
-                            <i class="fa-solid fa-star"></i>
-                        </button>
-                        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-3xl leading-none p-1 transition-colors">×</button>
-                    </div>
+<!-- ── 상세 모달 ──────────────────────────────────────────── -->
+<div id="detailModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:640px;">
+        <div class="modal-header">
+            <div class="modal-head-row">
+                <div class="modal-head-left">
+                    <span id="modalCategory" class="detail-cat-badge"></span>
+                    <p id="modalDate" class="modal-date"></p>
                 </div>
-                <h1 id="modalTitle" class="text-xl lg:text-2xl font-bold leading-snug text-white break-all tracking-tight"></h1>
-            </div>
-            <div class="flex-1 overflow-y-auto p-6 lg:p-8 pt-4">
-                <div id="modalContent" class="text-slate-100 text-sm lg:text-base leading-relaxed break-all whitespace-pre-wrap mb-6 bg-black/30 p-5 rounded-2xl border border-white/5"></div>
-                <div id="modalLinks" class="space-y-2"></div>
-            </div>
-            <div class="p-6 lg:p-8 pt-4 border-t border-white/5 flex gap-3 bg-black/20 flex-shrink-0">
-                <button onclick="copyAllMetaContent()" class="flex-1 bg-white/5 hover:bg-white/10 text-white py-3.5 rounded-2xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 border border-white/10">
-                    <i class="fa-solid fa-copy text-[#D4FE08]"></i> 전체 복사하기
-                </button>
-                <button onclick="deleteArchive()" class="flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 py-3.5 rounded-2xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 border border-red-500/10">
-                    <i class="fa-solid fa-trash"></i> 삭제하기
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="newModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md">
-        <div class="modal-pop bg-[#191D32] w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col max-h-[90vh] border border-white/10 shadow-2xl">
-            <div class="p-6 lg:p-8 pb-4 border-b border-white/5 flex-shrink-0 flex justify-between items-center">
-                <h2 class="text-lg lg:text-xl font-bold text-white">새 아카이브 등록</h2>
-                <button onclick="closeNewModal()" class="text-slate-400 hover:text-white text-3xl leading-none">&times;</button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-6 lg:p-8 space-y-5">
-                <div>
-                    <label class="block text-xs lg:text-sm text-slate-400 mb-2 font-medium">카테고리</label>
-                    <select id="newCategory" class="w-full bg-black/20 border border-white/10 rounded-2xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-[#D4FE08]"></select>
-                </div>
-                <div>
-                    <label class="block text-xs lg:text-sm text-slate-400 mb-2 font-medium">제목</label>
-                    <input id="newTitle" type="text" class="w-full bg-black/20 border border-white/10 rounded-2xl py-2.5 px-4 text-sm text-white focus:outline-none focus:border-[#D4FE08] placeholder-slate-600" placeholder="아카이브 제목을 입력하세요.">
-                </div>
-                <div>
-                    <label class="block text-xs lg:text-sm text-slate-400 mb-2 font-medium">내용</label>
-                    <textarea id="newContent" rows="6" class="w-full bg-black/20 border border-white/10 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:border-[#D4FE08] placeholder-slate-600 resize-none" placeholder="아이디어나 가치 아카이브 텍스트를 기입하세요."></textarea>
-                </div>
-                <div>
-                    <label class="block text-xs lg:text-sm text-slate-400 mb-2 font-medium">참조 레퍼런스 하이퍼링크 (최대 5개)</label>
-                    <div id="linkInputs" class="space-y-2"></div>
-                    <button onclick="addLinkInput()" class="text-[#D4FE08] text-xs font-semibold flex items-center gap-1.5 mt-2 hover:underline p-1">
-                        <i class="fa-solid fa-plus"></i> 링크 추가항목 추가
+                <div class="modal-head-right">
+                    <button onclick="toggleFavoriteInModal()" id="modalFavBtn" class="fav-modal-btn">
+                        <i class="fa-solid fa-star"></i>
                     </button>
+                    <button onclick="closeModal()" class="close-btn">×</button>
                 </div>
             </div>
-            <div class="p-6 lg:p-8 pt-4 border-t border-white/5 flex gap-3 bg-black/20 flex-shrink-0">
-                <button onclick="closeNewModal()" class="flex-1 py-3 border border-white/10 rounded-2xl text-sm font-medium hover:bg-white/5 text-slate-300 transition-colors">취소</button>
-                <button onclick="saveNewArchive()" class="flex-1 py-3 bg-[#D4FE08] text-black text-sm font-bold rounded-2xl hover:bg-[#C5E900] transition-colors">저장하기</button>
-            </div>
+            <div class="accent-line"></div>
+            <h1 id="modalTitle" class="modal-title"></h1>
+        </div>
+        <div class="modal-body">
+            <div id="modalContent" class="content-box"></div>
+            <div id="modalLinks"></div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="copyAllMetaContent()" class="btn-copy">
+                <i class="fa-solid fa-copy"></i> 전체 복사
+            </button>
+            <button onclick="deleteArchive()" class="btn-danger">
+                <i class="fa-solid fa-trash" style="margin-right:6px;"></i>삭제
+            </button>
         </div>
     </div>
+</div>
 
-    <script>
-        const SUPABASE_URL = 'https://oivthhdphiatrswsjxej.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnRoaGRwaGlhdHJzd3NqeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjAyNDQsImV4cCI6MjA5NzE5NjI0NH0.HpMEfEjASdItN0iY4GxLzRDBE56HAM08I44Cw55TtBo';
+<!-- ── 등록 모달 ──────────────────────────────────────────── -->
+<div id="newModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:520px;">
+        <div class="modal-header">
+            <div class="new-modal-header">
+                <div>
+                    <div class="accent-line sm"></div>
+                    <h2 style="font-size:15px; font-weight:700;">새 아카이브 등록</h2>
+                </div>
+                <button onclick="closeNewModal()" class="close-btn">&times;</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="m-label">카테고리</label>
+                <select id="newCategory" class="m-select"></select>
+            </div>
+            <div class="form-group">
+                <label class="m-label">제목</label>
+                <input id="newTitle" type="text" class="m-input" placeholder="아카이브 제목을 입력하세요">
+            </div>
+            <div class="form-group">
+                <label class="m-label">내용</label>
+                <textarea id="newContent" rows="6" class="m-textarea" placeholder="아이디어나 가치 아카이브 텍스트를 기입하세요"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label class="m-label">참조 링크 <span style="text-transform:none; letter-spacing:0; font-weight:400; color:var(--text-muted);">(최대 5개)</span></label>
+                <div id="linkInputs"></div>
+                <button onclick="addLinkInput()" class="link-add-btn">
+                    <i class="fa-solid fa-plus" style="font-size:10px;"></i> 링크 추가
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeNewModal()" class="btn-ghost">취소</button>
+            <button onclick="saveNewArchive()" class="btn-primary">저장하기</button>
+        </div>
+    </div>
+</div>
 
-        let supabase = null;
-        
-        // Supabase 라이브러리 안전 초기화
+<script>
+    const SUPABASE_URL      = 'https://oivthhdphiatrswsjxej.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pdnRoaGRwaGlhdHJzd3NqeGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjAyNDQsImV4cCI6MjA5NzE5NjI0NH0.HpMEfEjASdItN0iY4GxLzRDBE56HAM08I44Cw55TtBo';
+
+    let supabase = null;
+    try {
+        const lib = window.supabase || (typeof supabaseJs !== 'undefined' ? supabaseJs : null);
+        if (lib && lib.createClient) supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch(e) { console.error('Supabase 초기화 실패:', e); }
+
+    let archives = [
+        { id: 99991, category: "AI",        title: "로컬 안전 UI 가동 성공",            content: "현재 브라우저 보안 규정 또는 서버 통신 대기 중입니다. 레이아웃과 내부 기능은 100% 정상 작동합니다.", date: "2026-06-17", favorite: false, links: [] },
+        { id: 99992, category: "Marketing", title: "K-Beauty 동남아 다채널 마케팅 전략", content: "쇼피 및 인플루언서 연계 팝업 스토어 구축 프로세스 리서치 아카이브 자료입니다.",               date: "2026-06-16", favorite: true,  links: [] }
+    ];
+
+    let currentSort = 'newest', searchKeyword = '', currentCategoryFilter = '', currentView = 'all', currentPage = 1;
+    const itemsPerPage = 5;
+    const categories    = ["AI","IT","Design","Prompt","3D","UIUX","Typo","Photo","Art","Product","Business","Marketing","Development"];
+    const categoryIcons = { AI:"fa-brain", IT:"fa-laptop-code", Design:"fa-palette", Prompt:"fa-magic", "3D":"fa-cube", UIUX:"fa-mobile-screen", Typo:"fa-font", Photo:"fa-camera", Art:"fa-paintbrush", Product:"fa-box", Business:"fa-briefcase", Marketing:"fa-chart-line", Development:"fa-code" };
+
+    /* Supabase */
+    async function fetchSupabaseData() {
+        if (!supabase) { updateSpinnerStatus('⚠️ 라이브러리 차단됨 (안전 모드)'); return; }
         try {
-            const lib = window.supabase || (typeof supabaseJs !== 'undefined' ? supabaseJs : null);
-            if (lib && lib.createClient) {
-                supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch(e) {
-            console.error("Supabase 라이브러리 초기화 실패:", e);
-        }
-
-        // 로컬 오프라인 상태 및 통신 대기 상태용 초기 목업 데이터 기본 세팅
-        let archives = [
-            { id: 99991, category: "AI", title: "로컬 안전 UI 가동 성공", content: "현재 브라우저 보안 규정 또는 깃허브 통신 대기 중입니다. 레이아웃과 내부 기능은 100% 정상 작동합니다.", date: "2026-06-17", favorite: false, links: [] },
-            { id: 99992, category: "Marketing", title: "K-Beauty 동남아 다채널 마케팅 전략 자료", content: "쇼피 및 인플루언서 연계 팝업 스토어 구축 프로세스 리서치 아카이브 자료입니다.", date: "2026-06-16", favorite: true, links: [] }
-        ];
-
-        let currentSort = 'newest'; 
-        let searchKeyword = ''; 
-        let currentCategoryFilter = ''; 
-        let currentView = 'all'; 
-        let currentPage = 1; 
-        const itemsPerPage = 5;
-        
-        const categories = ["AI", "IT", "Design", "Prompt", "3D", "UIUX", "Typo", "Photo", "Art", "Product", "Business", "Marketing", "Development"];
-        const categoryIcons = { "AI": "fa-brain", "IT": "fa-laptop-code", "Design": "fa-palette", "Prompt": "fa-magic", "3D": "fa-cube", "UIUX": "fa-mobile-screen", "Typo": "fa-font", "Photo": "fa-camera", "Art": "fa-paintbrush", "Product": "fa-box", "Business": "fa-briefcase", "Marketing": "fa-chart-line", "Development": "fa-code" };
-
-        // 안전 비동기 로드 처리
-        async function fetchSupabaseData() {
-            if (!supabase) {
-                updateSpinnerStatus('⚠️ 라이브러리 차단됨 (안전 모드 구동 중)');
-                return;
-            }
-            try {
-                const { data, error } = await supabase.from('archives').select('*');
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    archives = data.map(item => ({
-                        ...item,
-                        links: Array.isArray(item.links) ? item.links : (item.links ? [item.links] : []),
-                        favorite: !!item.favorite
-                    }));
-                    updateSpinnerStatus('✅ Supabase 클라우드 실시간 데이터베이스 연동 완료');
-                } else {
-                    updateSpinnerStatus('ℹ️ 연결 성공 (데이터베이스가 현재 비어있음)');
-                }
-            } catch (err) {
-                console.warn('Supabase 연동 오류:', err.message);
-                updateSpinnerStatus('⚠️ 서버 연결 실패 (로컬 안전 모드로 가동)');
-            }
-        }
-
-        function updateSpinnerStatus(text) {
-            const txt = document.getElementById('spinnerText');
-            const icon = document.getElementById('loadingSpinner')?.querySelector('i');
-            if(txt) txt.textContent = text;
-            if(icon && (text.includes('✅') || text.includes('⚠️') || text.includes('ℹ️'))) {
-                icon.className = "fa-solid fa-circle-check text-green-400";
-                if(text.includes('⚠️')) icon.className = "fa-solid fa-triangle-exclamation text-amber-400";
-            }
-        }
-
-        function toggleMobileMenu() {
-            const sidebar = document.getElementById('sidebarPanel');
-            const icon = document.getElementById('hamburgerIcon');
-            if(sidebar.classList.contains('hidden')) {
-                sidebar.classList.remove('hidden');
-                sidebar.classList.add('flex', 'w-full', 'translate-x-0');
-                icon.className = "fa-solid fa-xmark text-[#D4FE08]";
+            const { data, error } = await supabase.from('archives').select('*');
+            if (error) throw error;
+            if (data && data.length > 0) {
+                archives = data.map(item => ({ ...item, links: Array.isArray(item.links) ? item.links : (item.links ? [item.links] : []), favorite: !!item.favorite }));
+                updateSpinnerStatus('✅ Supabase 클라우드 연동 완료');
             } else {
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('flex', 'w-full', 'translate-x-0');
-                icon.className = "fa-solid fa-bars";
+                updateSpinnerStatus('ℹ️ 연결 성공 — 데이터베이스가 비어있음');
             }
+        } catch(err) {
+            console.warn('Supabase 오류:', err.message);
+            updateSpinnerStatus('⚠️ 서버 연결 실패 (로컬 모드)');
         }
+    }
 
-        function closeMenuOnMobile() {
-            if (window.innerWidth < 1024) {
-                const sidebar = document.getElementById('sidebarPanel');
-                const icon = document.getElementById('hamburgerIcon');
-                sidebar.classList.add('hidden');
-                sidebar.classList.remove('flex', 'w-full');
-                icon.className = "fa-solid fa-bars";
-            }
+    function updateSpinnerStatus(text) {
+        const txt  = document.getElementById('spinnerText');
+        const icon = document.getElementById('loadingSpinner')?.querySelector('i');
+        if (txt)  txt.textContent = text;
+        if (icon) icon.className = text.includes('⚠️')
+            ? 'fa-solid fa-triangle-exclamation' + ' style="color:#fbbf24;"'
+            : 'fa-solid fa-circle-check';
+        if (icon) {
+            icon.className = text.includes('⚠️') ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+            icon.style.color = text.includes('⚠️') ? '#fbbf24' : '#4ade80';
         }
+    }
 
-        function renderCategories() {
-            const container = document.getElementById('categoryList');
-            if(!container) return; container.innerHTML = '';
-            
-            const isAllActive = (currentCategoryFilter === '' && currentView === 'all');
-            const allDiv = document.createElement('div');
-            allDiv.className = `flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-white/5 transition-colors flex-shrink-0 ${isAllActive ? 'bg-white/10 text-[#D4FE08] font-bold' : 'text-slate-400'}`;
-            allDiv.innerHTML = `
-                <i class="fa-solid fa-layer-group w-5 ${isAllActive ? 'text-[#D4FE08]' : 'text-slate-500'}"></i>
-                <span class="flex-1">전체보기</span>
-                <span class="text-xs bg-black/40 text-slate-400 px-2 py-0.5 rounded-md">${archives.length}</span>
-            `;
-            allDiv.onclick = () => { showAll(); closeMenuOnMobile(); };
-            container.appendChild(allDiv);
-
-            categories.forEach(cat => {
-                const count = archives.filter(a => a.category === cat).length;
-                const isActive = (currentCategoryFilter === cat && currentView !== 'favorites');
-                const div = document.createElement('div');
-                div.className = `flex items-center gap-3 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-white/5 transition-colors flex-shrink-0 ${isActive ? 'bg-white/10 text-[#D4FE08] font-bold' : 'text-slate-400'}`;
-                div.innerHTML = `
-                    <i class="fa-solid ${categoryIcons[cat] || 'fa-folder'} w-5 ${isActive ? 'text-[#D4FE08]' : 'text-slate-500'}"></i>
-                    <span class="flex-1">${cat}</span>
-                    <span class="text-xs bg-black/40 text-slate-400 px-2 py-0.5 rounded-md">${count}</span>
-                `;
-                div.onclick = () => { filterByCategory(cat); closeMenuOnMobile(); };
-                container.appendChild(div);
-            });
-            
-            document.getElementById('totalCount').textContent = archives.length;
-            document.getElementById('favCount').textContent = archives.filter(a => a.favorite).length;
-            document.getElementById('favNavBtn').classList.toggle('bg-white/10', currentView === 'favorites');
+    /* 모바일 메뉴 */
+    function toggleMobileMenu() {
+        const sb   = document.getElementById('sidebarPanel');
+        const icon = document.getElementById('hamburgerIcon');
+        const open = sb.classList.toggle('open');
+        icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        icon.style.color = open ? 'var(--accent)' : '';
+    }
+    function closeMenuOnMobile() {
+        if (window.innerWidth < 1024) {
+            document.getElementById('sidebarPanel').classList.remove('open');
+            const icon = document.getElementById('hamburgerIcon');
+            icon.className = 'fa-solid fa-bars';
+            icon.style.color = '';
         }
-
-        function getFilteredArchives() {
-            let result = [...archives];
-            if (currentCategoryFilter) result = result.filter(a => a.category === currentCategoryFilter);
-            if (currentView === 'favorites') result = result.filter(a => a.favorite);
-            if (searchKeyword) {
-                result = result.filter(a => a.title.toLowerCase().includes(searchKeyword) || a.content.toLowerCase().includes(searchKeyword));
-            }
-            if (currentSort === 'newest') { result.sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id); } 
-            else { result.sort((a, b) => new Date(a.date) - new Date(b.date) || a.id - b.id); }
-            return result;
+    }
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+            document.getElementById('sidebarPanel').classList.remove('open');
         }
+    });
 
-        function renderArchives(filteredArchives) {
-            const container = document.getElementById('archiveList'); if(!container) return; container.innerHTML = '';
-            const start = (currentPage - 1) * itemsPerPage; const end = start + itemsPerPage;
-            const paginated = filteredArchives.slice(start, end);
-            
-            if (paginated.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-24 text-slate-400 text-sm border border-dashed border-white/10 rounded-3xl bg-white/5">
-                        <i class="fa-solid fa-folder-open text-3xl mb-3 block text-slate-600"></i> 아카이브가 비어있습니다.
-                    </div>`;
-                renderPagination(0); return;
-            }
-            
-            paginated.forEach(archive => {
-                const div = document.createElement('div');
-                div.className = `card-custom rounded-3xl p-5 lg:p-6 cursor-pointer mb-4`;
-                div.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="px-2.5 py-0.5 bg-[#D4FE08]/10 text-[#D4FE08] text-xs font-semibold rounded-md">${archive.category}</span>
-                        <div onclick="event.stopPropagation(); toggleFavorite(${archive.id});" class="text-lg p-1 ${archive.favorite ? 'text-[#D4FE08]' : 'text-slate-600'} hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-star"></i>
-                        </div>
-                    </div>
-                    <h3 onclick="showDetail(${archive.id})" class="text-base lg:text-lg font-bold mb-2 line-clamp-2 text-white hover:text-[#D4FE08] transition-colors break-all">${escapeHtml(archive.title || '')}</h3>
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center text-xs text-slate-400 gap-1.5">
-                        <span class="font-mono text-slate-500">${archive.date || ''}</span>
-                        <span class="text-slate-400 line-clamp-1 break-all bg-black/30 px-2 py-0.5 rounded-lg flex-1 sm:ml-4 text-left sm:text-right">${escapeHtml(archive.content || '')}</span>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-            renderPagination(filteredArchives.length);
-        }
+    /* 카테고리 렌더 */
+    function renderCategories() {
+        const container = document.getElementById('categoryList');
+        if (!container) return;
+        container.innerHTML = '';
 
-        function renderPagination(totalItems) {
-            const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-            const container = document.getElementById('pagination'); if(!container) return; container.innerHTML = '';
-            if (currentPage > totalPages) currentPage = totalPages;
+        const isAllActive = !currentCategoryFilter && currentView === 'all';
+        const allDiv = document.createElement('div');
+        allDiv.className = 'cat-item' + (isAllActive ? ' active' : '');
+        allDiv.innerHTML = `<i class="fa-solid fa-layer-group cat-icon"></i><span class="cat-name">전체보기</span><span class="cat-badge">${archives.length}</span>`;
+        allDiv.onclick = () => { showAll(); closeMenuOnMobile(); };
+        container.appendChild(allDiv);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.className = `w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center text-xs lg:text-sm transition-all ${i === currentPage ? 'bg-[#D4FE08] text-black font-bold' : 'bg-white/5 text-slate-400 hover:bg-white/10'}`;
-                btn.textContent = i;
-                btn.onclick = () => { currentPage = i; renderArchives(getFilteredArchives()); };
-                container.appendChild(btn);
-            }
-        }
-
-        function updateToolbarTitle() {
-            const el = document.getElementById('currentFilterTitle');
-            if(!el) return;
-            if (currentView === 'favorites') { el.textContent = "즐겨찾기"; } 
-            else if (currentCategoryFilter) { el.textContent = `${currentCategoryFilter}`; } 
-            else { el.textContent = "전체보기"; }
-        }
-
-        function filterArchives() { searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim(); currentPage = 1; renderArchives(getFilteredArchives()); }
-        function clearSearch() { document.getElementById('searchInput').value = ''; searchKeyword = ''; currentPage = 1; renderArchives(getFilteredArchives()); }
-        function filterByCategory(cat) { currentCategoryFilter = cat; currentView = 'all'; currentPage = 1; renderArchives(getFilteredArchives()); renderCategories(); updateToolbarTitle(); }
-        function showAll() { currentCategoryFilter = ''; currentView = 'all'; currentPage = 1; renderArchives(getFilteredArchives()); renderCategories(); updateToolbarTitle(); }
-        function showFavorites() { currentView = 'favorites'; currentCategoryFilter = ''; currentPage = 1; renderArchives(getFilteredArchives()); renderCategories(); updateToolbarTitle(); closeMenuOnMobile(); }
-
-        function sortArchives(type) {
-            currentSort = type;
-            const isNew = type === 'newest';
-            const newestBtn = document.getElementById('sortNewest');
-            const oldestBtn = document.getElementById('sortOldest');
-            if(newestBtn && oldestBtn) {
-                newestBtn.classList.toggle('text-[#D4FE08]', isNew);
-                newestBtn.classList.toggle('text-slate-500', !isNew);
-                oldestBtn.classList.toggle('text-[#D4FE08]', !isNew);
-                oldestBtn.classList.toggle('text-slate-500', isNew);
-            }
-            currentPage = 1; renderArchives(getFilteredArchives());
-        }
-
-        function showDetail(id) {
-            const archive = archives.find(a => a.id === id); if (!archive) return;
-            
-            document.getElementById('modalCategory').textContent = archive.category;
-            document.getElementById('modalDate').textContent = "등록일자: " + archive.date;
-            document.getElementById('modalTitle').textContent = archive.title;
-            document.getElementById('modalContent').textContent = archive.content;
-            
-            const linksContainer = document.getElementById('modalLinks'); linksContainer.innerHTML = '';
-            if (archive.links && archive.links.length > 0) {
-                const linkTitle = document.createElement('p');
-                linkTitle.className = "text-xs text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4";
-                linkTitle.textContent = "참조 레퍼런스 링크";
-                linksContainer.appendChild(linkTitle);
-                
-                archive.links.forEach(link => {
-                    const a = document.createElement('a'); a.href = link; a.target = "_blank";
-                    a.className = "block text-[#D4FE08] hover:underline mb-1 text-xs lg:text-sm break-all font-mono";
-                    a.textContent = link; linksContainer.appendChild(a);
-                });
-            }
-            document.getElementById('modalFavBtn').innerHTML = `<i class="fa-solid fa-star ${archive.favorite ? 'text-[#D4FE08]' : 'text-slate-600'}"></i>`;
-            document.getElementById('detailModal').classList.remove('hidden');
-            document.getElementById('detailModal').dataset.currentId = id;
-        }
-
-        function closeModal() { 
-            document.getElementById('detailModal').classList.add('hidden'); 
-        }
-        
-        async function toggleFavorite(id) { 
-            const archive = archives.find(a => a.id === id); 
-            if (!archive) return;
-
-            const nextFavStatus = !archive.favorite;
-            archive.favorite = nextFavStatus;
-            renderArchives(getFilteredArchives()); 
-            renderCategories(); 
-
-            if(supabase) {
-                const { error } = await supabase
-                    .from('archives')
-                    .update({ favorite: nextFavStatus })
-                    .eq('id', id);
-                if(error) console.error("즐겨찾기 서버 업데이트 에러:", error.message);
-            }
-        }
-        
-        function toggleFavoriteInModal() { const id = parseInt(document.getElementById('detailModal').dataset.currentId); toggleFavorite(id); setTimeout(() => showDetail(id), 100); }
-
-        function copyAllMetaContent() {
-            const id = parseInt(document.getElementById('detailModal').dataset.currentId);
-            const archive = archives.find(a => a.id === id);
-            if (!archive) return;
-            
-            const linksText = (archive.links && archive.links.length > 0) ? archive.links.join('\n') : '없음';
-            const formattedTotalText = `■ 카테고리: ${archive.category}\n■ 등록날짜: ${archive.date}\n■ 제목: ${archive.title}\n\n■ 내용:\n${archive.content}\n\n■ 참조 링크:\n${linksText}`;
-            
-            navigator.clipboard.writeText(formattedTotalText).then(() => {
-                alert('전체 정보가 클립보드에 안전하게 복사되었습니다.');
-            });
-        }
-
-        async function deleteArchive() {
-            if (!confirm('정말 이 아카이브를 삭제하시겠습니까?')) return;
-            const id = parseInt(document.getElementById('detailModal').dataset.currentId);
-            
-            if(supabase) {
-                const { error } = await supabase.from('archives').delete().eq('id', id);
-                if (error) { console.warn('서버 삭제 실패:', error.message); }
-            }
-
-            archives = archives.filter(a => a.id !== id); 
-            closeModal(); 
-            renderAllViews();
-        }
-
-        // 🛠️ [수정완료] 끊김 없이 모달을 초기화하고 링크 입력 필드를 생성하는 함수 구현
-        function showNewArchiveModal() {
-            document.getElementById('newModal').classList.remove('hidden');
-            document.getElementById('newTitle').value = ''; 
-            document.getElementById('newContent').value = '';
-            const select = document.getElementById('newCategory'); 
-            select.innerHTML = '';
-            categories.forEach(cat => {
-                const option = document.createElement('option'); 
-                option.value = cat; 
-                option.textContent = cat; 
-                select.appendChild(option);
-            });
-            document.getElementById('linkInputs').innerHTML = ''; 
-            addLinkInput();
-        }
-
-        function closeNewModal() { 
-            document.getElementById('newModal').classList.add('hidden'); 
-        }
-        
-        // 🛠️ [수정완료] 주석 처리되어 마비되었던 링크 컴포넌트 생성 기능을 완벽히 복구했습니다.
-        function addLinkInput() {
-            const container = document.getElementById('linkInputs'); 
-            if (container.children.length >= 5) return;
-            const div = document.createElement('div'); 
-            div.className = "flex gap-2 items-center";
-            div.innerHTML = `
-                <input type="url" placeholder="https://example.com" class="flex-1 bg-black/20 border border-white/10 rounded-xl py-2 px-3 text-sm text-white focus:outline-none focus:border-[#D4FE08]">
-                <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-red-400 text-lg px-2 font-bold">&times;</button>
-            `;
+        categories.forEach(cat => {
+            const count    = archives.filter(a => a.category === cat).length;
+            const isActive = currentCategoryFilter === cat && currentView !== 'favorites';
+            const div = document.createElement('div');
+            div.className = 'cat-item' + (isActive ? ' active' : '');
+            div.innerHTML = `<i class="fa-solid ${categoryIcons[cat] || 'fa-folder'} cat-icon"></i><span class="cat-name">${cat}</span><span class="cat-badge">${count}</span>`;
+            div.onclick = () => { filterByCategory(cat); closeMenuOnMobile(); };
             container.appendChild(div);
-        }
-
-        async function saveNewArchive() {
-            const title = document.getElementById('newTitle').value.trim(); 
-            const content = document.getElementById('newContent').value.trim(); 
-            const category = document.getElementById('newCategory').value;
-            
-            if (!title || !content) { alert("제목과 내용을 모두 채워주세요."); return; }
-            
-            const links = Array.from(document.querySelectorAll('#linkInputs input')).map(input => input.value.trim()).filter(link => link);
-            const currentDate = new Date().toISOString().split('T')[0];
-
-            const localId = Date.now();
-            const newLocalItem = { id: localId, category, title, content, date: currentDate, links, favorite: false };
-            
-            archives.unshift(newLocalItem);
-            closeNewModal(); 
-            currentPage = 1; 
-            renderAllViews();
-
-            if (supabase) {
-                const { data, error } = await supabase
-                    .from('archives')
-                    .insert([{ category, title, content, date: currentDate, links, favorite: false }])
-                    .select();
-
-                if (!error && data && data.length > 0) {
-                    const idx = archives.findIndex(a => a.id === localId);
-                    if(idx !== -1) archives[idx] = { ...data[0], favorite: !!data[0].favorite };
-                    renderAllViews();
-                }
-            }
-        }
-
-        function escapeHtml(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-        document.addEventListener('keydown', function(e) { if (e.key === "Escape") { closeModal(); closeNewModal(); } });
-
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                document.getElementById('sidebarPanel').className = "flex flex-col w-full lg:w-72 sidebar-gradient border-r border-white/5 flex-shrink-0 sticky top-0 h-screen z-30 transition-transform duration-300";
-                document.getElementById('hamburgerIcon').className = "fa-solid fa-bars";
-            }
         });
 
-        function renderAllViews() {
-            renderCategories();
-            renderArchives(getFilteredArchives());
+        document.getElementById('totalCount').textContent = archives.length;
+        document.getElementById('favCount').textContent   = archives.filter(a => a.favorite).length;
+        document.getElementById('favNavBtn').classList.toggle('active', currentView === 'favorites');
+    }
+
+    /* 필터 */
+    function getFilteredArchives() {
+        let r = [...archives];
+        if (currentCategoryFilter) r = r.filter(a => a.category === currentCategoryFilter);
+        if (currentView === 'favorites') r = r.filter(a => a.favorite);
+        if (searchKeyword) r = r.filter(a => a.title.toLowerCase().includes(searchKeyword) || a.content.toLowerCase().includes(searchKeyword));
+        r.sort(currentSort === 'newest'
+            ? (a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id
+            : (a, b) => new Date(a.date) - new Date(b.date) || a.id - b.id);
+        return r;
+    }
+
+    /* 카드 렌더 */
+    function renderArchives(list) {
+        const container = document.getElementById('archiveList');
+        if (!container) return;
+        container.innerHTML = '';
+        const paginated = list.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+        if (!paginated.length) {
+            container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-folder-open"></i>아카이브가 비어있습니다</div>`;
+            renderPagination(0); return;
         }
 
-        // 🛠️ [수정완료] 깨진 문장 대신, 온전하게 웹페이지 로드가 끝난 시점에 UI를 구동하도록 설정합니다.
-        window.onload = async function() { 
-            renderAllViews(); 
-            sortArchives('newest'); 
-            await fetchSupabaseData(); 
-            renderAllViews();
-        };
-    </script>
+        paginated.forEach(archive => {
+            const card = document.createElement('div');
+            card.className = 'archive-card';
+            card.innerHTML = `
+                <div class="card-top">
+                    <span class="card-cat-badge">${archive.category}</span>
+                    <button onclick="event.stopPropagation(); toggleFavorite(${archive.id});" class="fav-star ${archive.favorite ? 'on' : 'off'}">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                </div>
+                <div class="card-title" onclick="showDetail(${archive.id})">${escapeHtml(archive.title || '')}</div>
+                <div class="card-bottom">
+                    <span class="card-date">${archive.date || ''}</span>
+                    <span class="card-preview">${escapeHtml(archive.content || '')}</span>
+                </div>`;
+            container.appendChild(card);
+        });
+        renderPagination(list.length);
+    }
+
+    /* 페이지네이션 */
+    function renderPagination(total) {
+        const totalPages = Math.ceil(total / itemsPerPage) || 1;
+        const container  = document.getElementById('pagination');
+        if (!container) return;
+        container.innerHTML = '';
+        if (currentPage > totalPages) currentPage = totalPages;
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className   = 'page-btn' + (i === currentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => { currentPage = i; renderArchives(getFilteredArchives()); };
+            container.appendChild(btn);
+        }
+    }
+
+    function updateToolbarTitle() {
+        const el = document.getElementById('currentFilterTitle');
+        if (!el) return;
+        el.textContent = currentView === 'favorites' ? '즐겨찾기' : currentCategoryFilter || '전체보기';
+    }
+
+    function filterArchives()      { searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim(); currentPage = 1; renderArchives(getFilteredArchives()); }
+    function clearSearch()         { document.getElementById('searchInput').value = ''; searchKeyword = ''; currentPage = 1; renderArchives(getFilteredArchives()); }
+    function filterByCategory(cat) { currentCategoryFilter = cat; currentView = 'all'; currentPage = 1; renderArchives(getFilteredArchives()); renderCategories(); updateToolbarTitle(); }
+    function showAll()             { currentCategoryFilter = ''; currentView = 'all'; currentPage = 1; renderArchives(getFilteredArchives()); renderCategories(); updateToolbarTitle(); }
+    function showFavorites()       { currentView = 'favorites'; currentCategoryFilter = ''; currentPage = 1; renderArchives(getFilteredArchives()); renderCategories(); updateToolbarTitle(); closeMenuOnMobile(); }
+
+    function sortArchives(type) {
+        currentSort = type;
+        document.getElementById('sortNewest').className = 'sort-btn' + (type === 'newest' ? ' active' : '');
+        document.getElementById('sortOldest').className = 'sort-btn' + (type === 'oldest' ? ' active' : '');
+        currentPage = 1; renderArchives(getFilteredArchives());
+    }
+
+    /* 상세 모달 */
+    function showDetail(id) {
+        const archive = archives.find(a => a.id === id);
+        if (!archive) return;
+        document.getElementById('modalCategory').textContent = archive.category;
+        document.getElementById('modalDate').textContent     = '등록일자: ' + archive.date;
+        document.getElementById('modalTitle').textContent    = archive.title;
+        document.getElementById('modalContent').textContent  = archive.content;
+
+        const linksContainer = document.getElementById('modalLinks');
+        linksContainer.innerHTML = '';
+        if (archive.links && archive.links.length) {
+            const p = document.createElement('p');
+            p.className   = 'ref-section-label';
+            p.textContent = '참조 레퍼런스';
+            linksContainer.appendChild(p);
+            archive.links.forEach(link => {
+                const a = document.createElement('a');
+                a.href = link; a.target = '_blank';
+                a.className   = 'ref-link';
+                a.textContent = link;
+                linksContainer.appendChild(a);
+            });
+        }
+
+        document.getElementById('modalFavBtn').style.color = archive.favorite ? 'var(--accent)' : 'var(--text-muted)';
+        document.getElementById('detailModal').classList.remove('hidden');
+        document.getElementById('detailModal').dataset.currentId = id;
+    }
+    function closeModal()    { document.getElementById('detailModal').classList.add('hidden'); }
+
+    /* 즐겨찾기 */
+    async function toggleFavorite(id) {
+        const archive = archives.find(a => a.id === id);
+        if (!archive) return;
+        archive.favorite = !archive.favorite;
+        renderArchives(getFilteredArchives()); renderCategories();
+        if (supabase) {
+            const { error } = await supabase.from('archives').update({ favorite: archive.favorite }).eq('id', id);
+            if (error) console.error('즐겨찾기 업데이트 오류:', error.message);
+        }
+    }
+    function toggleFavoriteInModal() {
+        const id = parseInt(document.getElementById('detailModal').dataset.currentId);
+        toggleFavorite(id); setTimeout(() => showDetail(id), 80);
+    }
+
+    /* 복사 */
+    function copyAllMetaContent() {
+        const id      = parseInt(document.getElementById('detailModal').dataset.currentId);
+        const archive = archives.find(a => a.id === id);
+        if (!archive) return;
+        const linksText = archive.links?.length ? archive.links.join('\n') : '없음';
+        const text = `■ 카테고리: ${archive.category}\n■ 등록날짜: ${archive.date}\n■ 제목: ${archive.title}\n\n■ 내용:\n${archive.content}\n\n■ 참조 링크:\n${linksText}`;
+        navigator.clipboard.writeText(text).then(() => alert('클립보드에 복사되었습니다.'));
+    }
+
+    /* 삭제 */
+    async function deleteArchive() {
+        if (!confirm('이 아카이브를 삭제하시겠습니까?')) return;
+        const id = parseInt(document.getElementById('detailModal').dataset.currentId);
+        if (supabase) {
+            const { error } = await supabase.from('archives').delete().eq('id', id);
+            if (error) console.warn('서버 삭제 실패:', error.message);
+        }
+        archives = archives.filter(a => a.id !== id);
+        closeModal(); renderAllViews();
+    }
+
+    /* 등록 모달 */
+    function showNewArchiveModal() {
+        document.getElementById('newModal').classList.remove('hidden');
+        document.getElementById('newTitle').value   = '';
+        document.getElementById('newContent').value = '';
+        const sel = document.getElementById('newCategory');
+        sel.innerHTML = '';
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat; opt.textContent = cat;
+            sel.appendChild(opt);
+        });
+        document.getElementById('linkInputs').innerHTML = '';
+        addLinkInput();
+    }
+    function closeNewModal() { document.getElementById('newModal').classList.add('hidden'); }
+
+    function addLinkInput() {
+        const container = document.getElementById('linkInputs');
+        if (container.children.length >= 5) return;
+        const div = document.createElement('div');
+        div.className = 'link-row';
+        div.innerHTML = `<input type="url" placeholder="https://example.com"><button class="link-rm" onclick="this.parentElement.remove()">&times;</button>`;
+        container.appendChild(div);
+    }
+
+    async function saveNewArchive() {
+        const title    = document.getElementById('newTitle').value.trim();
+        const content  = document.getElementById('newContent').value.trim();
+        const category = document.getElementById('newCategory').value;
+        if (!title || !content) { alert('제목과 내용을 모두 입력해주세요.'); return; }
+
+        const links       = Array.from(document.querySelectorAll('#linkInputs input')).map(i => i.value.trim()).filter(Boolean);
+        const currentDate = new Date().toISOString().split('T')[0];
+        const localId     = Date.now();
+        archives.unshift({ id: localId, category, title, content, date: currentDate, links, favorite: false });
+        closeNewModal(); currentPage = 1; renderAllViews();
+
+        if (supabase) {
+            const { data, error } = await supabase.from('archives')
+                .insert([{ category, title, content, date: currentDate, links, favorite: false }]).select();
+            if (!error && data?.length) {
+                const idx = archives.findIndex(a => a.id === localId);
+                if (idx !== -1) archives[idx] = { ...data[0], favorite: !!data[0].favorite };
+                renderAllViews();
+            }
+        }
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+    function renderAllViews() { renderCategories(); renderArchives(getFilteredArchives()); }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeNewModal(); } });
+
+    window.onload = async function() {
+        renderAllViews();
+        sortArchives('newest');
+        await fetchSupabaseData();
+        renderAllViews();
+    };
+</script>
 </body>
 </html>
