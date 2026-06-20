@@ -68,6 +68,8 @@
         #mobileTopbar .logo-row { display: flex; align-items: center; gap: 10px; }
         #hamburgerBtn { color: var(--text-sub); font-size: 17px; padding: 8px; transition: color 0.15s; }
         #hamburgerBtn:hover { color: var(--accent); }
+        #mobileFavBtn { color: var(--text-sub); font-size: 17px; padding: 8px; transition: color 0.15s; position: relative; }
+        #mobileFavBtn:hover { color: var(--accent); }
 
         /* ── 메인 행 (사이드바 + 콘텐츠) ────────────────────────── */
         #mainRow {
@@ -587,6 +589,10 @@
             <div class="logo-mark">C</div>
             <div class="logo-text">CREATIVE <span class="accent">ARCHIVE</span></div>
         </div>
+        <button id="mobileFavBtn" onclick="showFavorites()" style="color:var(--text-sub); font-size:17px; padding:8px; transition:color 0.15s; position:relative;">
+            <i class="fa-solid fa-star"></i>
+            <span id="mobileFavCount" style="position:absolute; top:2px; right:2px; background:var(--accent); color:#000; font-size:9px; font-weight:700; padding:1px 5px; border-radius:99px; line-height:1.4;">0</span>
+        </button>
         <button id="hamburgerBtn" onclick="toggleMobileMenu()">
             <i id="hamburgerIcon" class="fa-solid fa-bars"></i>
         </button>
@@ -873,7 +879,9 @@
         });
 
         document.getElementById('totalCount').textContent = archives.length;
-        document.getElementById('favCount').textContent   = archives.filter(a => a.favorite).length;
+        document.getElementById('favCount').textContent = archives.filter(a => a.favorite).length;
+        const mfc = document.getElementById('mobileFavCount');
+        if (mfc) mfc.textContent = archives.filter(a => a.favorite).length;
         document.getElementById('favNavBtn').classList.toggle('active', currentView === 'favorites');
     }
 
